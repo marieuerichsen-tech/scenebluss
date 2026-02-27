@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scene:Bluss</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --paper: #1a1612;
+    --red: #c8341a;
+    --orange: #e8631a;
+    --dim: #c8c2b8;
+    --mid: #7a6e63;
+    --light: #e8e3db;
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--paper);
+    font-family: 'Space Mono', monospace;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  /* HEADER */
+  header {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 4rem 3rem;
+    overflow: hidden;
+  }
+
+  .header-bg {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(200,52,26,0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(232,99,26,0.05) 0%, transparent 60%);
+  }
+
+  .header-tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s ease 0.2s forwards;
+  }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: clamp(3.5rem, 12vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: -0.03em;
+    color: var(--paper);
+    opacity: 0;
+    animation: fadeUp 1s ease 0.4s forwards;
+  }
+  h1 span { color: var(--red); display: block; }
+
+  .header-desc {
+    max-width: 520px;
+    margin-top: 3rem;
+    font-size: 0.82rem;
+    line-height: 1.9;
+    color: var(--mid);
+    opacity: 0;
+    animation: fadeUp 1s ease 0.7s forwards;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    right: 3rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--dim);
+    writing-mode: vertical-rl;
+    opacity: 0;
+    animation: fadeUp 1s ease 1.2s forwards;
+  }
+
+  .year-count {
+    position: absolute;
+    top: 3rem;
+    right: 3rem;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(245,242,237,0.96);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--dim);
+    padding: 0 3rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav ul { display: inline-flex; list-style: none; }
+  nav ul li a {
+    display: block;
+    padding: 1.1rem 1.4rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--mid);
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+    border-bottom: 2px solid transparent;
+  }
+  nav ul li a:hover { color: var(--paper); border-bottom-color: var(--red); }
+
+  /* ABOUT */
+  .about {
+    padding: 7rem 3rem;
+    max-width: 760px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--dim);
+  }
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 2rem;
+  }
+  .about p { font-size: 0.9rem; line-height: 2; color: var(--mid); }
+  .drivers { margin-top: 3rem; display: flex; gap: 3rem; }
+  .driver {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: var(--paper);
+    letter-spacing: 0.05em;
+  }
+  .driver span {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--mid);
+    margin-top: 0.2rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* MIND MAP OVERVIEW */
+  .editions-overview {
+    padding: 6rem 3rem;
+    border-bottom: 1px solid var(--dim);
+  }
+  .editions-overview-header { margin-bottom: 4rem; }
+  .editions-overview-header h2 {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    letter-spacing: -0.02em;
+  }
+  .editions-overview-header p { margin-top: 0.8rem; font-size: 0.75rem; color: var(--mid); }
+
+  .mindmap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .mindmap-card {
+    background: var(--white);
+    border: 1.5px solid var(--dim);
+    padding: 1.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    text-decoration: none;
+    display: block;
+    color: inherit;
+  }
+  .mindmap-card:hover {
+    border-color: var(--red);
+    box-shadow: 4px 4px 0 var(--red);
+    transform: translate(-2px, -2px);
+  }
+  .mindmap-card.cancelled {
+    background: var(--light);
+    border-style: dashed;
+    opacity: 0.7;
+  }
+  .mindmap-card.cancelled:hover { border-color: var(--dim); box-shadow: none; transform: none; }
+
+  .mc-year {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.9rem;
+    color: var(--red);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .mindmap-card.cancelled .mc-year { color: var(--dim); }
+
+  .mc-title {
+    font-size: 0.7rem;
+    line-height: 1.55;
+    color: var(--paper);
+    font-weight: 700;
+  }
+  .mindmap-card.cancelled .mc-title { color: var(--mid); }
+
+  .mc-tag {
+    display: inline-block;
+    margin-top: 0.8rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mid);
+    border: 1px solid var(--dim);
+    padding: 0.2rem 0.5rem;
+  }
+  .mc-arrow {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    font-size: 0.75rem;
+    color: var(--dim);
+    transition: color 0.2s, transform 0.2s;
+  }
+  .mindmap-card:hover .mc-arrow { color: var(--red); transform: translate(2px,-2px); }
+
+  /* EDITION DETAILS */
+  .editions-detail { padding: 3rem 0; }
+
+  .edition {
+    border-top: 1px solid var(--dim);
+    transition: background 0.3s;
+  }
+  .edition:hover { background: rgba(200,52,26,0.02); }
+
+  .edition-inner {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+  }
+
+  .edition-year-col {
+    padding: 3.5rem 2rem;
+    border-right: 1px solid var(--dim);
+  }
+  .edition-year {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: var(--dim);
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  .edition:hover .edition-year { color: var(--red); }
+
+  .edition-content { padding: 3.5rem 3rem 3.5rem 4rem; }
+
+  .edition-title {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: clamp(0.9rem, 2vw, 1.4rem);
+    letter-spacing: -0.02em;
+    margin-bottom: 2rem;
+    line-height: 1.3;
+    color: var(--paper);
+  }
+  .edition-title .colon { color: var(--red); }
+
+  .edition-cancelled {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    border: 1px solid var(--dim);
+    padding: 0.3rem 0.7rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .edition-img {
+    width: 100%;
+    max-width: 420px;
+    aspect-ratio: 4/3;
+    background: var(--light);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px dashed var(--dim);
+  }
+  .edition-img::before {
+    content: 'LEGG TIL BILDE';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--dim);
+  }
+  .edition-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* Gallery */
+  .edition-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    max-width: 520px;
+    margin-bottom: 1.5rem;
+  }
+  .edition-gallery img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.2s;
+  }
+  .edition-gallery img:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 16/9;
+  }
+  .edition-gallery img:hover { opacity: 0.88; cursor: zoom-in; }
+
+  .edition-gallery--5 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .edition-gallery--5 img:first-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 16/9;
+  }
+  .edition-gallery--5 img:not(:first-child) {
+    aspect-ratio: 4/3;
+  }
+
+  /* Edition description text */
+  .edition-desc {
+    max-width: 620px;
+    margin-bottom: 2rem;
+  }
+  .edition-desc p {
+    font-size: 0.82rem;
+    line-height: 1.95;
+    color: var(--mid);
+    margin-bottom: 1rem;
+  }
+  .edition-desc-intro {
+    font-family: 'Unbounded', sans-serif !important;
+    font-weight: 300 !important;
+    font-size: 0.85rem !important;
+    color: var(--ink) !important;
+    letter-spacing: 0.02em;
+  }
+  .edition-desc-outro {
+    font-style: italic;
+    color: var(--red) !important;
+  }
+  .edition-desc--bilingual {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 900px;
+  }
+  .bilingual-col--en {
+    border-left: 1px solid var(--dim);
+    padding-left: 3rem;
+  }
+  .bilingual-col--en p,
+  .bilingual-col--en .edition-quote,
+  .bilingual-col--en .edition-desc-intro {
+    font-style: italic;
+  }
+  @media (max-width: 760px) {
+    .edition-desc--bilingual { grid-template-columns: 1fr; }
+    .bilingual-col--en { border-left: none; padding-left: 0; border-top: 1px solid var(--dim); padding-top: 2rem; }
+  }
+  .edition-quote {
+    font-family: 'Space Mono', monospace;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--ink);
+    border-left: 3px solid var(--red);
+    padding: 0.5rem 0 0.5rem 1.2rem;
+    margin: 1.2rem 0;
+    line-height: 1.8;
+  }
+  .edition-gallery--5 img:nth-child(n+6) {
+    display: block;
+  }
+
+  .edition-participants-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 0.8rem;
+  }
+  .edition-participants { font-size: 0.78rem; line-height: 1.9; color: var(--mid); }
+  .edition-participants .participant:not(:last-child)::after { content: " · "; color: var(--dim); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--dim);
+    padding: 4rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 2rem;
+    flex-wrap: wrap;
+    background: var(--white);
+  }
+  .footer-logo {
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    color: var(--paper);
+  }
+  .footer-logo span { color: var(--red); }
+  .footer-info { font-size: 0.7rem; color: var(--mid); line-height: 2; text-align: right; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 640px) {
+    header, .about, .editions-overview { padding-left: 1.5rem; padding-right: 1.5rem; }
+    nav { padding: 0 1rem; }
+    .mindmap-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    .edition-inner { grid-template-columns: 1fr; }
+    .edition-year-col { padding: 2rem 1.5rem 0.5rem; border-right: none; border-bottom: 1px solid var(--dim); }
+    .edition-content { padding: 2rem 1.5rem; }
+    footer { padding: 3rem 1.5rem; }
+    .footer-info { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <div class="header-bg"></div>
+  <div class="year-count">Porsgrunn — 2014 →</div>
+  <div class="header-tag">Kunstnerdrevet residensplattform</div>
+  <h1>Scene<span>:Bluss</span></h1>
+  <p class="header-desc">En arena der kunstnere møtes, utfordrer etablerte strukturer og skaper nye verk i fellesskap. Hvert år — et nytt kunstnerisk team. Porsgrunn.</p>
+  <div class="scroll-hint">Scroll ned</div>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#om">Om</a></li>
+    <li><a href="#oversikt">Oversikt</a></li>
+    <li><a href="#2014">2014</a></li>
+    <li><a href="#2015">2015</a></li>
+    <li><a href="#2016">2016</a></li>
+    <li><a href="#2017">2017</a></li>
+    <li><a href="#2018">2018</a></li>
+    <li><a href="#2019">2019</a></li>
+    <li><a href="#2020">2020–21</a></li>
+    <li><a href="#2022">2022</a></li>
+    <li><a href="#2023">2023</a></li>
+    <li><a href="#2024">2024</a></li>
+    <li><a href="#2025">2025</a></li>
+  </ul>
+</nav>
+
+<section class="about fade-in" id="om">
+  <div class="section-label">Om Scene:Bluss</div>
+  <p>Scene:Bluss er en kunstnerdrevet residensplattform som skaper tverrkunstneriske, eksperimentelle og kollektive prosjekter. Hvert år samles et nytt kunstnerisk team i Porsgrunn for å utforske nye måter å arbeide sammen på. Plattformen fungerer som en residens-produksjons-hybrid — en arena der kunstnere møtes, utfordrer etablerte strukturer og skaper nye verk i fellesskap. SB setter søkelys på å motstå instrumentaliseringen av kunsten og gir kunstnere tid og frihet til å eksperimentere uten ytre krav om nytteverdi.</p>
+  <div class="drivers">
+    <div class="driver">Alexandra Tveit<span>Leder</span></div>
+    <div class="driver">Marie Ursin<span>Leder</span></div>
+  </div>
+</section>
+
+<!-- MIND MAP -->
+<section class="editions-overview fade-in" id="oversikt">
+  <div class="editions-overview-header">
+    <h2>Alle edisjonene</h2>
+    <p>Klikk på et år for å se detaljer og deltakere</p>
+  </div>
+  <div class="mindmap-grid">
+    <a class="mindmap-card fade-in" href="#2025">
+      <div class="mc-year">2025</div>
+      <div class="mc-title">Burning Hearts Edition</div>
+      <div class="mc-tag">21 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2024">
+      <div class="mc-year">2024</div>
+      <div class="mc-title">The Guttural Voice Edition</div>
+      <div class="mc-tag">14 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2023">
+      <div class="mc-year">2023</div>
+      <div class="mc-title">Fear Fair Feast Edition</div>
+      <div class="mc-tag">17 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2022">
+      <div class="mc-year">2022</div>
+      <div class="mc-title">Forprosjekt Fear Fair</div>
+      <div class="mc-tag">3 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card cancelled fade-in" href="#2020">
+      <div class="mc-year">2020–21</div>
+      <div class="mc-title">Bedbug Edition</div>
+      <div class="mc-tag">Avlyst — Covid-19</div>
+    </a>
+    <a class="mindmap-card fade-in" href="#2019">
+      <div class="mc-year">2019</div>
+      <div class="mc-title">The POSSE Edition</div>
+      <div class="mc-tag">21 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2018">
+      <div class="mc-year">2018</div>
+      <div class="mc-title">The Hellmouth Edition</div>
+      <div class="mc-tag">22 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2017">
+      <div class="mc-year">2017</div>
+      <div class="mc-title">Hellmouth Preparation: I May Be Dead, But I'm Still Pretty</div>
+      <div class="mc-tag">14 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2016">
+      <div class="mc-year">2016</div>
+      <div class="mc-title">Legacy Edition: The Ghost to Come</div>
+      <div class="mc-tag">23 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2015">
+      <div class="mc-year">2015</div>
+      <div class="mc-title">Taking Over Pohlmanns, Taking Over the City</div>
+      <div class="mc-tag">24 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+    <a class="mindmap-card fade-in" href="#2014">
+      <div class="mc-year">2014</div>
+      <div class="mc-title">The Debut</div>
+      <div class="mc-tag">11 kunstnere</div>
+      <span class="mc-arrow">↗</span>
+    </a>
+  </div>
+</section>
+
+<!-- DETAILS -->
+<section class="editions-detail">
+
+  <div class="edition fade-in" id="2014">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2014</div></div>
+      <div class="edition-content">
+        <div class="edition-title">The Debut</div>
+        <div class="edition-gallery">
+          <img src="scenebluss_2014.jpg" alt="Scene:Bluss 2014">
+          <img src="scenebluss_2014_2.jpg" alt="Scene:Bluss 2014">
+          <img src="scenebluss_2014_3.jpg" alt="Scene:Bluss 2014">
+          <img src="scenebluss_2014_1.jpg" alt="Scene:Bluss 2014">
+        </div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Saga Björklund Jönsson (SE)</span><span class="participant">Nicola Bremer (IT)</span><span class="participant">Gemma Carbone</span><span class="participant">Jennie Bergslie</span><span class="participant">Tian Rotteveel</span><span class="participant">Antonio Onio</span><span class="participant">Seth Warren Crow</span><span class="participant">Heather Warren Crow</span><span class="participant">Live Marianne Noven</span><span class="participant">Alexandra Tveit</span><span class="participant">Marie Ursin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2015">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2015</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Taking Over Pohlmanns<span class="colon">,</span> Taking Over the City</div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Rannei Grenne</span><span class="participant">Einar Ottestad</span><span class="participant">Bjørn Nikolaisen</span><span class="participant">Ekatarina Pliassova</span><span class="participant">Kristoffer Wideberg</span><span class="participant">Terje Fjellstad</span><span class="participant">Stian Tollefsen</span><span class="participant">Marius Lunde</span><span class="participant">Snorre Sjønøst Henriksen</span><span class="participant">Anne Kutzner</span><span class="participant">Ofelia Jarl Ortega (SE)</span><span class="participant">Pontus Pettersson (SE)</span><span class="participant">Jennie Bergslie</span><span class="participant">Veronica Bruce</span><span class="participant">Maja Linderroth</span><span class="participant">Arnt Christian Teigen</span><span class="participant">Saga Björklund Jönsson (SE)</span><span class="participant">Nicola Bremer (IT)</span><span class="participant">Marie Ursin</span><span class="participant">Alexandra Tveit</span><span class="participant">Ida Holthe Lid</span><span class="participant">Heiki Eero Riipinen</span><span class="participant">Anders Firing Aardal</span><span class="participant">Kristian Grennes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2016">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2016</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Legacy Edition<span class="colon">:</span> The Ghost to Come</div>
+        <div class="edition-gallery edition-gallery--5">
+          <img src="scene_bluss_2.jpg" alt="Scene:Bluss 2016">
+          <img src="scene_bluss_3.jpg" alt="Scene:Bluss 2016">
+          <img src="scene_bluss_LE_41.jpg" alt="Scene:Bluss 2016">
+          <img src="scene_bluss_LE_48.jpg" alt="Scene:Bluss 2016">
+          <img src="scene_bluss_LE_52.jpg" alt="Scene:Bluss 2016">
+        </div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Marie Nikazm Bakken</span><span class="participant">Fredrik Floen</span><span class="participant">Benjamin Lønne Røsler</span><span class="participant">Marie Othilie Hundevadt</span><span class="participant">Marie Ursin</span><span class="participant">Alexandra Tveit</span><span class="participant">Svend Erichsen</span><span class="participant">Lea Kieffer</span><span class="participant">Li Engla Molnár Kronlid</span><span class="participant">Arnt Christian Teigen</span><span class="participant">Patsy Lassbo</span><span class="participant">Kristine Gjems</span><span class="participant">Sigrid Marie Kittelsaa Vesaas</span><span class="participant">Geir Hytten</span><span class="participant">Kjersti Aas Stenby</span><span class="participant">Anna Ladegaard</span><span class="participant">Martin Pettersen</span><span class="participant">Katja Pliassova</span><span class="participant">Aurora Thomassen Lerstang</span><span class="participant">Emma Fosse Halvorsen</span><span class="participant">Heidi Tho</span><span class="participant">Smilla Hermansen</span><span class="participant">Jennie Bergslie</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2017">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2017</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Hellmouth Preparation<span class="colon">:</span> I May Be Dead, But I'm Still Pretty</div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Jassem Hindi</span><span class="participant">Tamara Alegre</span><span class="participant">Ali Abdelkhalek</span><span class="participant">David Jensen</span><span class="participant">Nela Hustak Kornetova</span><span class="participant">Jennie Bergsli</span><span class="participant">Tea Harryson</span><span class="participant">Eline Waldeland</span><span class="participant">Ann-Christin Berg Kongsness</span><span class="participant">Emma Fosse Halvorsen</span><span class="participant">Aurora Thomassen Lerstang</span><span class="participant">Ingrid Rønningen</span><span class="participant">Kristian Johnsen</span><span class="participant">Agota Triskute</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2018">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2018</div></div>
+      <div class="edition-content">
+        <div class="edition-title">The Hellmouth Edition</div>
+        <div class="edition-gallery">
+          <img src="hellmouth.jpg" alt="Scene:Bluss 2018 — The Hellmouth Edition">
+        </div>
+        <div class="edition-desc">
+          <p>Scene:Bluss – The Hellmouth Edition is a two week long residency that will end in an immersive, durational performance. The project is based on the TV-series Buffy the Vampire Slayer. The small town Porsgrunn will become Sunnydale. We will be the Scooby-gang, the demons, the helpers and the betrayers in producing a total art piece. The Bronze and the unknown that will devour from beneath.</p>
+          <p>Alongside director <strong>Marie Nikazm Bakken</strong>, leading costume designer <strong>Fredrik Floen</strong> and leading sound designer <strong>Patsy Lassbo</strong>, we will select 12 participants. This residency is an occasion for you to reflect on your performance fantasies through the lens of a collective project framed by a theme and a group of organizers. We want to think together by working together and work together by thinking together.</p>
+          <p>We, Alexandra, Marie, Patsy, Marie and Fredrik are keen on producing an over the top, immersive art experience. This summer we invite you to step into the Buffyverse. We will make a durational performance based on what serialised narration entails, based on what the episode format can offer. We will build weapons, throw curses, incarnate demons, make a musical, a silent movie and die repeatedly.</p>
+          <p><em>Scene:Bluss - The Hellmouth Edition is a project that aims at saying yes to more than what is graspable and to have fun while working hard. Our aim is to bring this project towards something potentially unpredictable, epic, larger than life. Something literally un-tourable.</em></p>
+        </div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Livia Hiselius</span><span class="participant">Josephine Kylén Collins</span><span class="participant">Martin Hansen</span><span class="participant">Marie Nikazm Bakken</span><span class="participant">Arnt Christian Teigen</span><span class="participant">Anna Ladegaard</span><span class="participant">Stella Laine</span><span class="participant">Alexandra Tveit</span><span class="participant">Patsy Lassbo</span><span class="participant">Klara Utke Acs</span><span class="participant">Lisen Ellard</span><span class="participant">Emmi Venna</span><span class="participant">Marie Ursin</span><span class="participant">Fredrik Floen</span><span class="participant">Simon Asencio</span><span class="participant">Jasmine Lee</span><span class="participant">Guy Marsan</span><span class="participant">Lara Jil Dreyer</span><span class="participant">Sigrid Lerche</span><span class="participant">Cecile Bally</span><span class="participant">Sarah Aiken</span><span class="participant">Christoffer Lloyd</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2019">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2019</div></div>
+      <div class="edition-content">
+        <div class="edition-title">The POSSE Edition</div>
+        <div class="edition-gallery">
+          <img src="posse_edition.jpg" alt="Scene:Bluss 2019 — The POSSE Edition">
+        </div>
+        <div class="edition-desc">
+          <p>This year we organize a series of collective performance and reading events called POSSE. It is open to everyone who wants to participate. We will meet for 4 days to read texts collectively and do stuff together: Read collectively, share dances, go to a karaoke, create a growling choir, learn horse whispering and much much more.</p>
+          <p>It is an experimental reading and making group. Everyone is welcome, every skill is welcomed. Scene:Bluss POSSE edition will be lead by <strong>Tamara Alegre</strong>, <strong>Chloe Chignell</strong>, <strong>Lisen Pousette</strong> and <strong>Klara Utke Acs</strong>.</p>
+          <p>P0$$€ dance and reading is a weekly gathering for people wanting to spend time dancing and reading together. It is an open-ended study circle for practitioners within contemporary dance and other curious ones. Each session is hosted by one or several practitioners that propose the materials: text to read, a way to read the text and dances. The text can be written be artistic, essayistic, philosophical, articles, lyrics, poetry, manifestos, scores. The methods can vary from reading in a circle one by one, to braiding hair, to intimate readings, to speaking through robotic voices. The dances can vary in style: contemporary, modern, reggaeton, body work, formalism, expressive dance, dance-rituals, scores, meditations, writing, questioning, healing, dreaming, for example.</p>
+          <p><em>POSSE is engaged with critical practices and with generating discourse through doing.</em></p>
+        </div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Klara Utke Acs</span><span class="participant">Tamara Alegre</span><span class="participant">Chloe Chignell</span><span class="participant">Lisen Pousette</span><span class="participant">Sandra Lolax</span><span class="participant">Nikhil Vettukattil</span><span class="participant">Nikoline Ursin Erichsen</span><span class="participant">Eoghan Ryan</span><span class="participant">Ian Page</span><span class="participant">Else Tunemyr</span><span class="participant">Alice MacKenzie</span><span class="participant">Sina Seifee</span><span class="participant">Amina Bile</span><span class="participant">Naima Islinger</span><span class="participant">Josefina Björk</span><span class="participant">Runa Borch Skolgseg</span><span class="participant">Veronica Bruce</span><span class="participant">Lilly Pfalzer</span><span class="participant">Rundhild Gammelsæter</span><span class="participant">Lauren S. Olsen</span><span class="participant">Chanett Bakke</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2020">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2020–21</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Bedbug Edition</div>
+        <div class="edition-cancelled">Utsatt 2020 / Avlyst 2021 — Covid-19</div>
+        <div class="edition-gallery">
+          <img src="bedbug.jpg" alt="Scene:Bluss — Bedbug Edition">
+        </div>
+        <div class="edition-desc edition-desc--bilingual">
+          <div class="bilingual-col">
+            <blockquote class="edition-quote">"The day shows us what we should be and the night what we are" — Roger Ekirch</blockquote>
+            <p>Det siste året har nesten helt visket ut det allerede svekkede skillet mellom natt og dag, seng og arbeidssted, og produksjon og fritid. Når nattens spesifisiteter blir overtatt av våketidens logikk, hva skjer da med vår tilgang til den eldste veien til den menneskelige psyke, våre drømmer og fantasier? Hvordan kan vi synkronisere oss med nattas krefter?</p>
+            <p>Bedbug Edition er en to ukers residens i Porsgrunn for scenekunstnere. I år ville vi bruke objektet senga som katalysator for å gå inn i en kollektiv fantasi. Vi ville nærme oss det som utfordrer våketidens kronologi og der paradokser er velkomne.</p>
+            <p>Residensen besto av en serie workshops, samtaler og eksperimenter som på forskjellige måter produserer materiale til, og leder frem mot en eller flere forestillinger.</p>
+            <p>Bedbug edition ledes av dramatiker og poet <strong>Runa Borch Skolseg</strong>, scenograf og kostymedesigner <strong>Fredrik Floen</strong>, og dansere og koreografer <strong>Alexandra Tveit</strong> og <strong>Marie Ursin</strong>. Sammen ville vi utfordre og leke oss med irrasjonelle dramaturgier, bruke søvnløse tilstander til tekstproduksjon og mane frem et sengeteppe stort nok for oss alle — gjennom hallusinatoriske danser, skyggespill, fantasier og mareritt på en nedlagt militærleir i Porsgrunn.</p>
+          </div>
+          <div class="bilingual-col bilingual-col--en">
+            <blockquote class="edition-quote">"The day shows us what we should be and the night what we are" — Roger Ekirch</blockquote>
+            <p>This last year has reduced the already weakened distinction between day and night, bed and workplace, production and leisure. When the specifics of the night are taken over by the logic of wakefulness, what happens to our access to the oldest path to the human psyche, our dreams and fantasies? How can we synchronize with the forces of the night?</p>
+            <p>Scene:Bluss Bedbug Edition is a two-week performing arts residency in Porsgrunn. It's a place for showing and talking about artistic work; to test out and share ideas through immersive and collective projects. The residency will consist of a series of workshops, conversations and experiments that will produce a diversity of material that ultimately meet an audience.</p>
+            <p>We will use the bed as a catalyst to access our collective imagination, and find ways to challenge the order of daytime and welcome time paradoxes. Bedbug edition is led by playwright and poet <strong>Runa Borch Skolseg</strong>, set and costume designer <strong>Fredrik Floen</strong>, and choreographers and dancers <strong>Alexandra Tveit</strong> and <strong>Marie Ursin</strong>. Together we will work with irrational dramaturgies, use slumber states as a source for writing and create a bedspread large enough for all of us. We will let the night lead us through hallucinatory dances, shadow games, fantasies and nightmares.</p>
+          </div>
+        </div>
+        <div class="edition-participants-label">Planlagte deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Runa Borch Skolseg</span><span class="participant">Fredrik Floen</span><span class="participant">Alexandra Tveit</span><span class="participant">Marie Ursin</span><span class="participant">Benjamin Lønne Røsler</span><span class="participant">Ines Belli</span><span class="participant">Sigrid Lerche</span><span class="participant">Rita Maria Munoz</span><span class="participant">Alexander Talts</span><span class="participant">Amalia Waitr Lewis</span><span class="participant">Louis Schou-Hansen</span><span class="participant">Maria Victoria Høvring Høeg</span><span class="participant">Julie Lundgaard Christophersen</span><span class="participant">Lisen Pousette</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2022">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2022</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Forprosjekt Fear Fair</div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Heiki Riipinen</span><span class="participant">Marie Ursin</span><span class="participant">Alexandra Tveit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2023">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2023</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Fear Fair Feast Edition</div>
+        <div class="edition-gallery edition-gallery--5">
+          <img src="Fear_Fair_Feast_Edition.jpg" alt="Scene:Bluss 2023 — Fear Fair Feast Edition">
+          <img src="IMG_6997.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC07080.jpg" alt="Scene:Bluss 2023">
+          <img src="IMG_6902.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC06919.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC06985.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC07009.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC07024.jpg" alt="Scene:Bluss 2023">
+          <img src="DSC07075.jpg" alt="Scene:Bluss 2023">
+          <img src="IMG_4180.JPG" alt="Scene:Bluss 2023">
+          <img src="eksponert_2.jpg" alt="Scene:Bluss 2023">
+        </div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Kristine Utne Stiberg</span><span class="participant">Muza De La Luz</span><span class="participant">Alejandro Chellet</span><span class="participant">Karoline Amalie Severinsen</span><span class="participant">Mohammed Lehry</span><span class="participant">Waldane Walker</span><span class="participant">Moa Marklund</span><span class="participant">Cajsa Godée</span><span class="participant">Einar Ottestad</span><span class="participant">Guro Brudvik Dalene</span><span class="participant">Javon Bennett</span><span class="participant">Heiki Riipinen</span><span class="participant">dragongirl</span><span class="participant">Maren Saedi</span><span class="participant">Ragni Halle</span><span class="participant">Andrea Lindeneg</span><span class="participant">Marie Ursin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2024">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2024</div></div>
+      <div class="edition-content">
+        <div class="edition-title">The Guttural Voice Edition</div>
+        <div class="edition-gallery">
+          <img src="guttural_voice.jpg" alt="Scene:Bluss 2024 — The Guttural Voice Edition">
+        </div>
+        <div class="edition-desc edition-desc--bilingual">
+          <div class="bilingual-col">
+            <p>I år er det klart for workshop med Stina Fors! Hun vil være vår guide for å finne forskjellige ekstreme stemmer i workshopen <em>Guttural Voices</em>.</p>
+            <p>Workshopen vil fokusere på lekende eksperimentering og å oppdage stemmen som et kraftfullt uttrykksverktøy. Vi vil utforske eksperimentelle stemmeteknikker som knurring, skriking, buktaling og dinosaurrop! Gjennom lekne øvelser og interaktive økter vil vi oppdage de forskjellige stemmene i kroppen vår. Bevegelse vil være vår viktigste kraft til å veilede oss. Denne workshopen er for alle som er interessert i stemmen som et verktøy for kunstnerisk uttrykk, uavhengig av erfaringsnivå. Og den er gratis!</p>
+            <p>Med sansen for det absurde og merkelige, lager <strong>Stina Fors</strong> (f. 1989, SE) uforutsigbare og energifylte forestillinger. Som selvlært trommeslager og ekstrem vokalist turnerer Fors med hennes "en-kvinnes-punk-band": Stina Force, hvor ingen forestilling noen gang er lik. <em>A Mouthful of Tongues</em>, hennes nyeste verk, er en magisk og absurd forestilling hvor stemmen virker som den er løsrevet fra kroppen. Gjennom buktaling, growling og dinosaurskrik får vi oppleve skapninger ingen noen tidligere har sett og høre språk ingen snakket før. Fors arbeid er fylt med spenning, vidd og rå kraft. Stina studerte koreografi ved SNDO i Amsterdam, og bor for tiden i Wien, Østerrike.</p>
+          </div>
+          <div class="bilingual-col bilingual-col--en">
+            <p>This year we are ready for Stina Fors to take us on a ride through our guttural voices in the form of a three day workshop!</p>
+            <p>This workshop focus is on playful experimentation and the discovery of the voice as a powerful tool of expression. Explore extended and experimental voice techniques like the many kinds of growling, screaming, ventriloquism, dinosaur calls and more. Through playful exercises and interactive sessions, we'll discover the diverse voices within our bodies. Movement will be our main force to guide us. This workshop is designed for anyone interested in the voice as a tool for artistic expression, regardless of their level of experience. Wear comfortable clothes and be prepared to engage in physical activities.</p>
+            <p>With a certain taste for the absurd and strange, <strong>Stina Fors</strong> crafts unique, once-in-a-lifetime performances. As a self-taught drummer and shocking vocalist, Fors tours with her one-woman-punk-band, Stina Force, a band that must be experienced live—characterized by spontaneity—no two performances are alike. Extended ventriloquism and overtone screams can both be seen and heard in her recent work, <em>A Mouthful of Tongues</em> — a magic show where the voice appears detached from the performer's body. Her work is packed with tension, humor, and raw power. Additionally, she imparts her knowledge, teaching techniques to produce extreme voices like death growls without vocal damage. Stina studied choreography at the SNDO school for new dance development in Amsterdam, currently residing in Vienna, Austria.</p>
+          </div>
+        </div>
+        <div class="edition-img"></div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Anette Waller</span><span class="participant">Josephine Kylen Collins</span><span class="participant">Kornelia Remø Klokk</span><span class="participant">Lærke Grøntvedt</span><span class="participant">Nela Kornetova</span><span class="participant">Randi Mossing</span><span class="participant">Javon Bennett</span><span class="participant">Mathias Engen</span><span class="participant">Morten Liene</span><span class="participant">Carl Martin Eggesbø</span><span class="participant">Kenneth Homstad</span><span class="participant">Georgiana Dobre</span><span class="participant">Desire Bøgh Vaksdal</span><span class="participant">Ann-Christin Kongsness</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="edition fade-in" id="2025">
+    <div class="edition-inner">
+      <div class="edition-year-col"><div class="edition-year">2025</div></div>
+      <div class="edition-content">
+        <div class="edition-title">Burning Hearts Edition</div>
+        <div class="edition-desc edition-desc--bilingual">
+          <div class="bilingual-col">
+            <p class="edition-desc-intro">Til alle brennende hjerter og svidde begjær, dette er til dere!</p>
+            <blockquote class="edition-quote">"I speak from the darkest night / Pass on, so I can forget"</blockquote>
+            <p>Velkommen til årets utgave av Scene:Bluss i samarbeid med Agder Teaterlaboratorium! I år skal vi bygge vår egen verden basert på den iranske poeten Forugh Farrokhzad. Hun var en poet av sanselige ekstremer som skrev personlige og kroppslige dikt, som kan minne om å være inne i drømmen til en vill valmue der hun lever ut sin ubønnhørlige intensitet.</p>
+            <p>Bli med koreografene Roza Moshtaghi og Kristin Helgebostad og lage en forestilling bygget på musikkvideoer, poesi, livemusikk, melodrama og svette. I to uker vil vi utforske Farrokhzads verden og hennes affektive ord, hennes omfavnelse av begjær, hennes empati med hele verden. Ny musikk og tekster basert på Farrokhzads poesi vil bli skrevet til forestillingen og fremført live av 3 forskjellige Porsgrunnsbaserte band!</p>
+            <p>Moshtaghi og Helgebostad vil utforske tekstene hennes gjennom idéen om live-musikkvideo som koreografi. Med et popkulturelt og kulturhistorisk referansebasseng vil vi gjennom morgenklasser, forelesninger og workshops skape et arbeid som vises ved PIT, Porsgrunn Internasjonale Teaterfestival. I lab'en vil deltakerne være utøvere, lage scenografi, skape kostymer, synge sammen og alt i mellom.</p>
+            <p>Prosjektet er åpent for alle som er interessert i performance-skaping uavhengig av bakgrunn, alder eller evne.</p>
+            <p class="edition-desc-outro">Du er invitert til en episk tur inn i ilden…</p>
+          </div>
+          <div class="bilingual-col bilingual-col--en">
+            <p class="edition-desc-intro">Dear burning hearts and scorched desires, this one's for you</p>
+            <blockquote class="edition-quote">"I speak from the darkest night / Pass on, so I can forget"</blockquote>
+            <p>Welcome to this new edition of Scene:Bluss in collaboration with Agder Teaterlaboratorium! This year we will build our own world based on the poems of the Iranian poet Forugh Farrokhzad. She was a poet of sensual extremes who wrote personal and bodily poetry, like being inside the dream of a wild poppy where she lived out her relentless intensity.</p>
+            <p>Join choreographers Roza Moshtaghi and Kristin Helgebostad in creating a performance built from music videos, poetry, live music, melodrama and sweat. During this two-week laboratory, we will explore Farrokhzad's world and her affective words, her embrace of desire, her empathy with the whole world. New music and lyrics based on Farrokhzad's texts will be written for the performance and performed live by 3 different Porsgrunn-based bands!</p>
+            <p>Moshtaghi and Helgebostad will explore her words through the idea of a live music video as choreography. With a pool of pop-cultural references and cultural history the lab will consist of morning classes, lectures and workshops. We will create a performance that will be shown on the 6th of June at PIT, Porsgrunn International Theater Festival. In the lab, the participants will be performers, create scenography, create costumes, sing together and everything in between.</p>
+            <p>The project is open to anyone interested in performance-making regardless of background, age or ability.</p>
+            <p class="edition-desc-outro">You are invited to an epic ride into the fire</p>
+          </div>
+        </div>
+        <div class="edition-gallery edition-gallery--5">
+          <img src="burningheart_platecover.jpg" alt="Scene:Bluss 2025 — Burning Hearts Edition">
+          <img src="Screenshot_2025-08-16_at_22_02_13_solveig.png" alt="Scene:Bluss 2025">
+          <img src="Screenshot_2025-08-16_at_21_57_20_damini.png" alt="Scene:Bluss 2025">
+          <img src="Screenshot_2025-08-16_at_22_08_41_jennie.png" alt="Scene:Bluss 2025">
+          <img src="SceneBluss_2025_16.jpg" alt="Scene:Bluss 2025">
+        </div>
+        <div class="edition-participants-label">Deltakere</div>
+        <div class="edition-participants">
+          <span class="participant">Kristin Ryg Helgebostad</span><span class="participant">Roza Moshtaghi</span><span class="participant">Sebastian Biong</span><span class="participant">Marie Ursin</span><span class="participant">Jennie Bergsli</span><span class="participant">Dengling Levine</span><span class="participant">Inger Flotve</span><span class="participant">Damini Gairola</span><span class="participant">Roya-Zahra Shadmand</span><span class="participant">Alexandra Tveit</span><span class="participant">Forough Absalan</span><span class="participant">Solveig Ylva Dagsdottir</span><span class="participant">Alberte Buch Gøbel</span><span class="participant">Leah Landu</span><span class="participant">Caroline Blomqvist</span><span class="participant">Theodor Glømi Jupskås</span><span class="participant">Nicolai John Hans</span><span class="participant">Birk Mellefoss Lehmann</span><span class="participant">Josephine Kylén Collins</span><span class="participant">Filip Ring</span><span class="participant">Mette-Line Pedersen</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  <div class="footer-logo">Scene<span>:Bluss</span></div>
+  <div class="footer-info">Porsgrunn, Norge<br>Alexandra Tveit &amp; Marie Ursin<br><a href="/cdn-cgi/l/email-protection#fb88989e959e99978e8888bb9c969a9297d5989496" style="color: var(--red); text-decoration: none; letter-spacing: 0.05em;"><span class="__cf_email__" data-cfemail="fd8e9e9893989f91888e8ebd9a909c9491d39e9290">[email&#160;protected]</span></a></div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEa
